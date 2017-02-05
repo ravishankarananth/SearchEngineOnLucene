@@ -83,7 +83,12 @@ public class QryParser {
 
     //  Handle the distance argument to proximity operators such as
     //  #near/n and #window/n.
-
+    
+    if(operatorNameLowerCase.startsWith("#near")){
+    	String[] temp = operatorNameLowerCase.split("/");
+    	operatorDistance = Integer.parseInt(temp[1]);
+    	operatorNameLowerCase = temp[0];
+    }
     //  STUDENT HW1 AND HW2 CODE HERE
     
     //  Create the query operator.
@@ -94,6 +99,9 @@ public class QryParser {
 	break;
       case "#and":
     	  operator = new QrySopAnd();
+    	  break;
+      case "#near":
+    	  operator = new QryIopNear(operatorDistance);
     	  break;
       case "#syn":
 	operator = new QryIopSyn ();

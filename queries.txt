@@ -1,1 +1,1 @@
-1:#OR(bananas apples)
+1:#near/3(apple pie)
