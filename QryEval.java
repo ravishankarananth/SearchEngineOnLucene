@@ -203,6 +203,7 @@ public class QryEval {
 
         if (r != null) {
           //printResults(qid, r);
+        	//
           //System.out.println();
           int length=100;
           if(parameters.containsKey("trecEvalOutputLength"))
