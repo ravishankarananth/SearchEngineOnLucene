@@ -59,11 +59,8 @@ public class InvList {
      *  Term frequency:  The number of times the term occurs in
      *  the specified field of the document.
      */
-    private int tf = 0;
+    public int tf = 0;
 
-    public int getTF(){
-    	return tf;
-    }
     /**
      *  The locations where the term occurs in the specified field
      *  of the document.

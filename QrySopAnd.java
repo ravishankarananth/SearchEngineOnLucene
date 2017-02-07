@@ -36,9 +36,11 @@ public class QrySopAnd extends QrySop {
 		    if (! this.docIteratorHasMatchCache()) {
 		      return 0.0;
 		    } else {
+		    	Double min=Double.MAX_VALUE;
 		    	
-		    	Double min = ((QrySop)this.args.get(0)).getScore(r);
-		    		    	for (int i=1; i <this.args.size(); i++){
+		    	
+		    		    	for (int i=0; i <this.args.size(); i++){
+		    		    		
 		    		    		double temp = ((QrySop)this.args.get(i)).getScore(r);
 		    		    		if (min>temp){
 		    		    			min = temp;

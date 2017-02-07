@@ -96,15 +96,9 @@ public class ScoreList {
 	else if (s2.externalId.compareTo(s1.externalId)>0)
 		return -1;
 	else if(s2.externalId.compareTo(s1.externalId)<0)
-		return 1;
-	else
-	  if (s1.docid > s2.docid)
-	    return 1;
-	  else
-	    if (s1.docid < s2.docid)
-	      return -1;
+		return 1;	
 	    else
-	      return 0;
+	    return 0;
     }
   }
 

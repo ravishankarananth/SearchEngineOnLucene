@@ -216,7 +216,7 @@ public class QryEval {
         	  break;
           System.out.println(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+r.getDocidScore(i)+"\t"+"fubar");
           writer.write(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+r.getDocidScore(i)+"\t"+"fubar");
-		  if(i<r.size()-1)
+		  //if(i<r.size()-1)
 		  writer.newLine();
           }
           writer.close();

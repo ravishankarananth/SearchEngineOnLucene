@@ -203,7 +203,7 @@ public abstract class QryIop extends Qry {
    *  @param loc The location to advance beyond.
    */
   public void locIteratorAdvancePast (int loc) {
-    int tf = this.invertedList.postings.get(this.docIteratorIndex).getTF();
+    int tf = this.invertedList.postings.get(this.docIteratorIndex).tf;
     Vector<Integer> positions = this.invertedList.postings.get(this.docIteratorIndex).positions;
 
     while ((this.locIteratorIndex < tf) &&
@@ -218,7 +218,7 @@ public abstract class QryIop extends Qry {
    */
   public void locIteratorFinish () {
     this.locIteratorIndex =
-      this.invertedList.postings.get(this.docIteratorIndex).getTF();
+      this.invertedList.postings.get(this.docIteratorIndex).tf;
   }
 
   /**
