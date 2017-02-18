@@ -39,14 +39,21 @@ public class QrySopOr extends QrySop {
     }
   }
   
+  /**
+   *  getScore for the RankedBoolean retrieval model.
+   *  @param r The retrieval model that determines how scores are calculated.
+   *  @return The document score.
+   *  @throws IOException Error accessing the Lucene index
+   */
+  
   private double getScoreRankedBoolean (RetrievalModel r) throws IOException {
 	    if (! this.docIteratorHasMatchCache()) {
 	      return 0.0;
 	    } else {
 	    	
-	    	double max = 0.0;
-	    	int docIDmin=this.docIteratorGetMatch();
-	    		for (int i=0; i <this.args.size(); i++){
+	    	double max = 0.0; // variable to find the maximum score that needs to be returned for OR
+	    	int docIDmin=this.docIteratorGetMatch(); //variable to find the minimum docID
+	    		for (int i=0; i <this.args.size(); i++){	//loop through the arguments and call their getscore operation.
 	    			double temp = 0;
 	    			if (this.args.get(i).docIteratorHasMatchCache())
 	    		    	if (((QrySop)this.args.get(i)).docIteratorGetMatch()==docIDmin)

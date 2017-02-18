@@ -57,21 +57,25 @@ public class QrySopScore extends QrySop {
     }
   }
 
+  /**
+   *  getScore for the Ranked retrieval model.
+   *  @param r The retrieval model that determines how scores are calculated.
+   *  @return The document score.
+   *  @throws IOException Error accessing the Lucene index
+   */
   
   private double getScoreRankedBoolean (RetrievalModel r) throws IOException {
 	    if (! this.docIteratorHasMatchCache()) {
 	      return 0.0;
 	    } else {
-	    	
+	    	//cast into IOP and get the TF. We know that score operator arguments are always QRYIOP.
 	    	return ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().tf;
 	    }
 	      
 	    
 	  }
   
-  /*
-  return min;
-  */
+  
   /**
    *  Initialize the query operator (and its arguments), including any
    *  internal iterators.  If the query operator is of type QryIop, it
