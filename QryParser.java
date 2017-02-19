@@ -105,8 +105,9 @@ public class QryParser {
     	  break;
       case "#syn":
 	operator = new QryIopSyn ();
+      case "#sum":
+    	  operator = new QrySopSum();
 	break;
-
       default:
 	syntaxError ("Unknown query operator " + operatorName);
     }

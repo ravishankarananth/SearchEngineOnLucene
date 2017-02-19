@@ -37,6 +37,9 @@ public class QrySopScore extends QrySop {
     }else if (r instanceof RetrievalModelRankedBoolean){
     	
     	return this.getScoreRankedBoolean (r); }
+    else if(r instanceof RetrievalModelOkapiBM25){
+    	return this.performOkapiFormula( (RetrievalModelOkapiBM25) r);
+    }
     else {
       throw new IllegalArgumentException
         (r.getClass().getName() + " doesn't support the SCORE operator.");
@@ -74,6 +77,26 @@ public class QrySopScore extends QrySop {
 	      
 	    
 	  }
+  
+  private double performOkapiFormula(RetrievalModelOkapiBM25 r) throws IOException{
+	  if (! this.docIteratorHasMatchCache()) {
+	      return 0.0;
+	    } else {
+	    	   
+	  	  double rsjweight = (Idx.getNumDocs() - ((QryIop)this.args.get(0)).getDf() + 0.5)/ (((QryIop)this.args.get(0)).getDf()+0.5);
+	  	  rsjweight = Math.log(rsjweight);
+	  	  double termfreq = ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().tf;
+	  	  double sizeOfdoc = Idx.getFieldLength( ((QryIop)this.args.get(0)).getField(), ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().docid);
+	  	  double averageLength =  Idx.getSumOfFieldLengths(((QryIop)this.args.get(0)).getField()) / (double)Idx.getDocCount (((QryIop)this.args.get(0)).getField());
+	  	  
+	  	  double innervalue = (1-r.getBm25_b()) + (r.getBm25_b() * ( sizeOfdoc / averageLength) ); 
+	  	  double tfweight = termfreq/(termfreq + (r.getBm25_k1() * innervalue));
+	  	  return rsjweight*tfweight;
+	    	//cast into IOP and get the TF. We know that score operator arguments are always QRYIOP.
+	    	//return ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().tf;
+	    }
+	   
+  }
   
   
   /**
