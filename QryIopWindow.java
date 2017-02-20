@@ -3,16 +3,13 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-/**
- *  The NEAR operator for all retrieval models.
- */
-public class QryIopNear extends QryIop{
-
+public class QryIopWindow extends QryIop{
 	int operatorDistance; // int value that stores the distance of the NEAR operator to check
-	  public QryIopNear(int operatorDistance) { // constructor that sets the value of distance.
+	  public QryIopWindow(int operatorDistance) { // constructor that sets the value of distance.
 		// TODO Auto-generated constructor stub
 		  this.operatorDistance=operatorDistance;
-	  }
+		  
+	  	}
 
 	
 	  /**
@@ -34,7 +31,7 @@ public class QryIopNear extends QryIop{
 		List<Integer> positions; //position is list that stores the values of term position index  within the document.
 		
 		while (true){
-			
+				
 		      int minDocid = Qry.INVALID_DOCID;
 		      int maxDocId=0;
 		      int index=0;
@@ -77,43 +74,59 @@ public class QryIopNear extends QryIop{
 		      }
 		      else{	//DOCID matched now look for positions
 		    	  positions= new ArrayList<Integer>();
-		    	  boolean endloop2 = false;
-		    	  int checkVal=0;
+		    	  
+		    	  
 		    	  while(true){	//while for iterator. ends through breaks that happen when iterator has no match.
 		    	  boolean flag=false;
-		    	  int prevar=0; 
-		    	  checkVal=0;
+		    	   
+		    	  boolean endloopmatch = false;
+		    	  int indexMax = 0;
+		    	  int indexMin = 0;
 		    	  if(((QryIop)this.args.get(0)).locIteratorHasMatch()){  
-		    		  prevar=((QryIop)this.args.get(0)).locIteratorGetMatch();
+		    		  
 		    	  flag=false;
-		    	  					//checking for distance in this iteration
-					for(int k = 1; k<this.args.size(); k++){
-						if(((QryIop)this.args.get(k)).locIteratorHasMatch()){
-						int newvar = ((QryIop)this.args.get(k)).locIteratorGetMatch();
-						if((newvar-prevar)<=this.operatorDistance && (newvar-prevar)>0){
-							flag=true;//distance of terms are matching
-						}
-						else{
-							flag=false;
-							checkVal=k;
-							break;
-						}
-						prevar=newvar;	//for next iteration make prevar into newvar, and compare with the new newvar.
-					}
-					else{
-						endloop2=true;
-					}
-					}}
-		    	  else{
+		    	  
+		    	  double minvar = Double.MAX_VALUE;
+		    	  double maxvar = 0;
+		    	  
+		    	  for(int k = 0; k<this.args.size(); k++){
+		    		  if(((QryIop)this.args.get(k)).locIteratorHasMatch()){
+		    			if(maxvar < ((QryIop)this.args.get(k)).locIteratorGetMatch()){
+		    				maxvar = ((QryIop)this.args.get(k)).locIteratorGetMatch();
+		    				indexMax = k;
+		    				
+		    			}
+		    			if (minvar > ((QryIop)this.args.get(k)).locIteratorGetMatch()){
+		    				minvar = ((QryIop)this.args.get(k)).locIteratorGetMatch();
+		    				indexMin = k;
+		    				
+		    			}
+		    				
+		    		  }  else {
+		    			  endloopmatch = true;
+		    			  break;
+		    		  }
+		    	  }
+		    	  
+		    	  if(endloopmatch){
+		    		  endloopmatch = false;
 		    		  break;
 		    	  }
-			if(endloop2){	//no iterator match break form while, go to next document.
-				flag=false;
-				break;
-			}
-				if(flag){
-					//flag==true => distance are matching, add to postions list
-					positions.add(((QryIop)this.args.get(this.args.size()-1)).locIteratorGetMatch());
+		    	  if (((1+ maxvar - minvar) <= operatorDistance) && (maxvar!=minvar)){
+		    		  
+		    		  //System.out.println(minvar);
+		    		  flag = true;
+		    	  }
+		    	  else {
+		    		  
+		    		  flag = false;
+		    	  }
+		    	  					
+					}
+		    	if(flag){
+		    		
+					//flag==true => distance are matching, add to positions list
+					positions.add(((QryIop)this.args.get(indexMax)).locIteratorGetMatch());
 					
 				for(int k=0;k<this.args.size(); k++){	//advance all iterators
 						if(((QryIop)this.args.get(k)).locIteratorHasMatch())
@@ -123,21 +136,10 @@ public class QryIopNear extends QryIop{
 					}
 				}
 				else{		//Advance only the MIN iterator	
-					int minvalIterator = ((QryIop)this.args.get(0)).locIteratorGetMatch();
-					index=0;
-					for(int k=1;k<this.args.size(); k++){
-						if(((QryIop)this.args.get(k)).locIteratorHasMatch())
-						if(minvalIterator>((QryIop)this.args.get(k)).locIteratorGetMatch())
-						{minvalIterator = ((QryIop)this.args.get(k)).locIteratorGetMatch();
-						index=k;
-						}
-					}
-					if(((QryIop)this.args.get(index)).locIteratorHasMatch()) {
-						if(checkVal!=0){	//if unmatched index iterator is lower than matched one, then we iterate that unmatched instead of min of the all the lists.
-						if(((QryIop)this.args.get(checkVal)).locIteratorGetMatch()<((QryIop)this.args.get(checkVal-1)).locIteratorGetMatch()){ //check for testcase 19.
-							index=checkVal;
-						}}
-						((QryIop)this.args.get(index)).locIteratorAdvance();
+					
+					if(((QryIop)this.args.get(indexMin)).locIteratorHasMatch()) {
+						
+						((QryIop)this.args.get(indexMin)).locIteratorAdvance();
 						}
 					else
 						break;
@@ -151,12 +153,7 @@ public class QryIopNear extends QryIop{
 				for (Qry q_i: this.args){	//advance all arguments to next docid
 					q_i.docIteratorAdvancePast(minDocid);
 				}
-		      
-		      }
-		
-		
-		}
-	}	
-	}
 
-
+}
+		}}	
+}
