@@ -189,7 +189,7 @@ public static HashMap<Qry, Double> testweight = new HashMap<>();
       throws IOException, IllegalArgumentException {
 
     Qry q = parseString (queryString);		// An exact parse
-    System.out.println("here");
+    //System.out.println("here");
    
     q = optimizeQuery (q);			// An optimized parse
     return q;
@@ -325,10 +325,10 @@ while (queryString.length() > 0) {
 	PopData<String,String> p;
 	PopData<String,String> weight = null;
       //  STUDENT HW2 CODE GOES HERE
-    	if(Character.isDigit(queryString.charAt(0))){
+    	if(popTerm(queryString).getPopped().matches("[0-9]+.[0-9]+") ){
     		
     		weight = popTerm(queryString);
-    		
+    		System.out.println(weight.getPopped());
     		queryString = weight.getRemaining().trim();
     		
     		
@@ -343,7 +343,7 @@ while (queryString.length() > 0) {
 	  p = popSubquery (queryString);
 	  qargs = new Qry[1];
 	  
-	 // System.out.println(queryString);
+	 System.out.println(p.getPopped());
 	  
 	  qargs[0] = parseString (p.getPopped());
       } else {					// Term
