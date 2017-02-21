@@ -5,6 +5,8 @@
 import java.io.*;
 import java.lang.IllegalArgumentException;
 
+import org.apache.lucene.queryparser.classic.QueryParser;
+
 /**
  *  The SCORE operator for all retrieval models.
  */
@@ -125,6 +127,11 @@ public double getDefaultScore(RetrievalModel r, int docID) throws IOException {
 	
 	RetrievalModelIndri r_indri= (RetrievalModelIndri)r;
 
+
+	double weight = 1.0;
+	if(QryParser.testweight.containsKey(this.args.get(0)))
+	weight = QryParser.testweight.get((this.args.get(0)));
+	
 	//double termfreq = ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().tf;
 	double sizeOfdoc = Idx.getFieldLength( ((QryIop)this.args.get(0)).getField(), docID);
 	double lengthofC = Idx.getSumOfFieldLengths(((QryIop)this.args.get(0)).getField());
@@ -134,6 +141,7 @@ public double getDefaultScore(RetrievalModel r, int docID) throws IOException {
 	double lengthAndMu = (sizeOfdoc+r_indri.getIdMu());
 	double score = OneminusLamda * (r_indri.getIdMu()*prior)/lengthAndMu;
 	score = score + (r_indri.getIdLambda()*(ctf/lengthofC));
+	
   	return score;
 }
 
@@ -143,6 +151,10 @@ private double getScoreIndri(RetrievalModelIndri r) throws IOException {
 	  if (! this.docIteratorHasMatchCache()) {
 	      return 1.0;
 	    } else {
+	    	double weight = 1.0;
+	    	if(QryParser.testweight.containsKey(this.args.get(0)))
+	    	weight = QryParser.testweight.get((this.args.get(0)));
+	    	
 	    	
 	    	double termfreq = ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().tf;
 	    	double sizeOfdoc = Idx.getFieldLength( ((QryIop)this.args.get(0)).getField(), ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().docid);
@@ -154,7 +166,7 @@ private double getScoreIndri(RetrievalModelIndri r) throws IOException {
 	    	
 	    	double score = OneminusLamda * (termfreq + r.getIdMu()*prior)/lengthAndMu;
 	    	score = score + (r.getIdLambda()*prior);
-	    	
+
 	    	return score;
 	    }
 }

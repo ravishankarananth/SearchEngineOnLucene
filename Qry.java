@@ -84,6 +84,7 @@ public abstract class Qry {
    */
   protected ArrayList<Qry> args = new ArrayList<Qry>();
 
+  protected HashMap<Qry, Double> weight = new HashMap<>();
   /**
    *  The string to use when the query is displayed.  Some query
    *  operators (e.g., QrySopAnd) may be represented by more than
@@ -102,6 +103,11 @@ public abstract class Qry {
 
   //  --------------- Methods ---------------------------------------
 
+  public void appendWeight(Qry q, double w){
+	  weight.put(q, w);
+  }
+  
+  
   /**
    *  Append an argument to the list of query operator arguments.  
    *  @param q The query argument (query operator) to append.
@@ -373,6 +379,14 @@ public abstract class Qry {
     return ((QryIop) this.args.get(i));
   }
 
+  
+  public Double getWeight(Qry q){
+	  if(weight.containsKey(q))
+	  return weight.get(q);
+	  else
+		  return 0.0;
+  }
+  
   /**
    *  Every operator has a display name that can be used by
    *  toString for debugging or other user feedback.  

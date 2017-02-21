@@ -72,7 +72,7 @@ public class QryParser {
     return count;
   }
 
-
+public static HashMap<Qry, Double> testweight = new HashMap<>();
   /**
    *  Create the desired query operator.
    *  @parameter operator The operator name.
@@ -113,7 +113,7 @@ public class QryParser {
       case "#sum":
     	  operator = new QrySopSum();
       case "#wand":
-    	  operator = new QrySopAnd();
+    	  operator = new QrySopWand();
 	break;
       default:
 	syntaxError ("Unknown query operator " + operatorName);
@@ -184,6 +184,8 @@ public class QryParser {
       throws IOException, IllegalArgumentException {
 
     Qry q = parseString (queryString);		// An exact parse
+    System.out.println("here");
+   
     q = optimizeQuery (q);			// An optimized parse
     return q;
   }
@@ -310,40 +312,38 @@ public class QryParser {
     //  Note: An argument can be a token that produces multiple terms
     //  (e.g., "near-death") or a subquery (e.g., "#and (a b c)").
     //  Recurse on subqueries.
-
-    while (queryString.length() > 0) {
+ 
+while (queryString.length() > 0) {
 	
       //  If the operator uses weighted query arguments, each pass of
       //  this loop must handle "weight arg".  Handle the weight first.
-
+	PopData<String,String> p;
+	PopData<String,String> weight = null;
       //  STUDENT HW2 CODE GOES HERE
     	if(Character.isDigit(queryString.charAt(0))){
     		
-    		Pattern p = Pattern.compile("[0-9]+.[0-9]+");
-    		Matcher m = p.matcher(queryString);
-    		while (m.find()) {
-    		    double n = Double.parseDouble(m.group());
-    		    System.out.println(n);
-    		}
+    		weight = popTerm(queryString);
     		
+    		queryString = weight.getRemaining().trim();
     		
-    		queryString = queryString.replaceAll("[0-9]+[.][0-9]+", " ");
-    		System.out.println(queryString);
-    		//System.out.println(Arrays.asList(numberStr.trim().split(" ")));
     		
     	}
 
       //  Now handle the argument (which could be a subquery).
 
       Qry[] qargs = null;
-      PopData<String,String> p;
+      
 
       if (queryString.charAt(0) == '#') {	// Subquery
 	  p = popSubquery (queryString);
 	  qargs = new Qry[1];
+	  
+	 // System.out.println(queryString);
+	  
 	  qargs[0] = parseString (p.getPopped());
       } else {					// Term
 	  p = popTerm (queryString);
+	  	  
 	  qargs = createTerms (p.getPopped());
       }
 
@@ -353,11 +353,25 @@ public class QryParser {
 
       for (int i=0; i<qargs.length; i++) {
 
+    	  
+    	  
 	//  STUDENTS WILL NEED TO ADJUST THIS BLOCK TO HANDLE WEIGHTS IN HW2
-
+    	  
+    
+    	
+    	  if(weight!=null)
+    	  	testweight.put(qargs[i], Double.parseDouble(weight.getPopped()));
+    	
+    
 	queryTree.appendArg (qargs[i]);
       }
     }
+/*Set<Qry> keys = queryTree.weight.keySet();  //get all keys
+for(Qry i: keys)
+{
+    System.out.println(i);
+}*/
+
 
     return queryTree;
   }  

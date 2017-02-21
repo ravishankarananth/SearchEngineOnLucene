@@ -44,6 +44,8 @@ public class QrySopAnd extends QrySop {
 		  if (! this.docIteratorHasMatchCache()) {
 		      return 1.0;
 		    } else {
+		    	
+		    	
 		    	double score =1.0;
 		    	double product=1.0;
 		    	int docIDmin=this.docIteratorGetMatch(); //variable to find the minimum docID
