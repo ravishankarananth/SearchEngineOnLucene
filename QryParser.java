@@ -110,11 +110,16 @@ public static HashMap<Qry, Double> testweight = new HashMap<>();
     	  break;
       case "#syn":
 	operator = new QryIopSyn ();
+	break;
       case "#sum":
     	  operator = new QrySopSum();
+    	  break;
       case "#wand":
     	  operator = new QrySopWand();
-	break;
+    	  break;
+      case "#wsum":
+    	  operator = new QrySopWsum();
+    	  break;
       default:
 	syntaxError ("Unknown query operator " + operatorName);
     }
