@@ -4,6 +4,8 @@
 
 import java.io.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.lucene.analysis.Analyzer.TokenStreamComponents;
 import org.apache.lucene.analysis.TokenStream;
@@ -110,6 +112,8 @@ public class QryParser {
 	operator = new QryIopSyn ();
       case "#sum":
     	  operator = new QrySopSum();
+      case "#wand":
+    	  operator = new QrySopAnd();
 	break;
       default:
 	syntaxError ("Unknown query operator " + operatorName);
@@ -313,6 +317,21 @@ public class QryParser {
       //  this loop must handle "weight arg".  Handle the weight first.
 
       //  STUDENT HW2 CODE GOES HERE
+    	if(Character.isDigit(queryString.charAt(0))){
+    		
+    		Pattern p = Pattern.compile("[0-9]+.[0-9]+");
+    		Matcher m = p.matcher(queryString);
+    		while (m.find()) {
+    		    double n = Double.parseDouble(m.group());
+    		    System.out.println(n);
+    		}
+    		
+    		
+    		queryString = queryString.replaceAll("[0-9]+[.][0-9]+", " ");
+    		System.out.println(queryString);
+    		//System.out.println(Arrays.asList(numberStr.trim().split(" ")));
+    		
+    	}
 
       //  Now handle the argument (which could be a subquery).
 
