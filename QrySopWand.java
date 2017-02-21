@@ -9,7 +9,7 @@ public class QrySopWand extends QrySop{
 	   */
 	  public boolean docIteratorHasMatch (RetrievalModel r) {
 			 
-	    return this.docIteratorHasMatchAll(r);
+	    return this.docIteratorHasMatchMin(r);
 	  	  }
 	
 	  public double getScore (RetrievalModel r) throws IOException {
@@ -35,6 +35,8 @@ public class QrySopWand extends QrySop{
 		    		else
 		    			sumweight += QryParser.testweight.get((this.args.get(i).args.get(0)));
 		    	}
+		    	
+		    	
 		    	double queryweight = 0;
 		    	double weightpower =0;
 		    	double score =1.0;
@@ -47,9 +49,9 @@ public class QrySopWand extends QrySop{
 		    		if (((QrySop)this.args.get(i)).docIteratorGetMatch()==docIDmin) {
 		    			
 		    			if(QryParser.testweight.containsKey(this.args.get(i)))
-		    				queryweight+= QryParser.testweight.get((this.args.get(i)));
+		    				queryweight= QryParser.testweight.get((this.args.get(i)));
 			    		else
-			    			queryweight += QryParser.testweight.get((this.args.get(i).args.get(0)));
+			    			queryweight = QryParser.testweight.get((this.args.get(i).args.get(0)));
 		    			
 		    			weightpower = queryweight/sumweight;
 		    			product = Math.pow(((QrySop)this.args.get(i)).getScore(r), weightpower);
@@ -59,9 +61,9 @@ public class QrySopWand extends QrySop{
 		    		else{
 		    			
 		    			if(QryParser.testweight.containsKey(this.args.get(i)))
-		    				queryweight+= QryParser.testweight.get((this.args.get(i)));
+		    				queryweight= QryParser.testweight.get((this.args.get(i)));
 			    		else
-			    			queryweight += QryParser.testweight.get((this.args.get(i).args.get(0)));
+			    			queryweight = QryParser.testweight.get((this.args.get(i).args.get(0)));
 		    			
 		    			weightpower = queryweight/sumweight;
 		    			
@@ -71,9 +73,9 @@ public class QrySopWand extends QrySop{
 		    		} else
 		    		{	
 		    			if(QryParser.testweight.containsKey(this.args.get(i)))
-		    				queryweight+= QryParser.testweight.get((this.args.get(i)));
+		    				queryweight = QryParser.testweight.get((this.args.get(i)));
 			    		else
-			    			queryweight += QryParser.testweight.get((this.args.get(i).args.get(0)));
+			    			queryweight = QryParser.testweight.get((this.args.get(i).args.get(0)));
 		    			
 		    			weightpower = queryweight/sumweight;
 		    			
@@ -97,15 +99,16 @@ public class QrySopWand extends QrySop{
 	    		else
 	    			sumweight += QryParser.testweight.get((this.args.get(i).args.get(0)));
 	    	}
+	    	
 	    	double queryweight = 0;
 	    	double weightpower =0;
 	  		
 	  		//double gmean = 1.0/(double)this.args.size();
 	  		for (int i = 0; i < this.args.size(); i++){	 
 	  			if(QryParser.testweight.containsKey(this.args.get(i)))
-    				queryweight+= QryParser.testweight.get((this.args.get(i)));
+    				queryweight = QryParser.testweight.get((this.args.get(i)));
 	    		else
-	    			queryweight += QryParser.testweight.get((this.args.get(i).args.get(0)));
+	    			queryweight = QryParser.testweight.get((this.args.get(i).args.get(0)));
     			
     			weightpower = queryweight/sumweight;
     			
