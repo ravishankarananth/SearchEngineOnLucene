@@ -4,6 +4,7 @@
  */
 import java.io.*;
 import java.security.Policy.Parameters;
+import java.text.DecimalFormat;
 import java.util.*;
 
 import org.apache.lucene.analysis.Analyzer.TokenStreamComponents;
@@ -96,8 +97,8 @@ public class QryEval {
     else if(modelString.equals("bm25")){
     	model = new RetrievalModelOkapiBM25(Double.parseDouble(parameters.get("BM25:k_1")), Double.parseDouble(parameters.get("BM25:b")), Double.parseDouble(parameters.get("BM25:k_3")));
     }
-    else if(modelString.equals("Indri")){
-    	model = new RetrievalModelIndri();
+    else if(modelString.equals("indri")){
+    	model = new RetrievalModelIndri(Double.parseDouble(parameters.get("Indri:lambda")), Double.parseDouble(parameters.get("Indri:mu")));
     }
     else {
       throw new IllegalArgumentException
@@ -217,11 +218,12 @@ public class QryEval {
           
           FileWriter fw = new FileWriter(parameters.get("trecEvalOutputPath"), true);
           BufferedWriter writer = new BufferedWriter(fw);
+          DecimalFormat dFormat = new DecimalFormat("#0.000000000000");
           for (int i = 0; i < r.size(); i++){
           if(i>length-1)
         	  break;
          //System.out.println(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+r.getDocidScore(i)+"\t"+"fubar");
-          writer.write(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+r.getDocidScore(i)+"\t"+"fubar");
+          writer.write(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+dFormat.format(r.getDocidScore(i))+"\t"+"fubar");
 		  //if(i<r.size()-1)
 		  writer.newLine();
           }

@@ -34,19 +34,24 @@ public class QrySopScore extends QrySop {
 
     if (r instanceof RetrievalModelUnrankedBoolean) {
       return this.getScoreUnrankedBoolean (r);
-    }else if (r instanceof RetrievalModelRankedBoolean){
-    	
+    }else if (r instanceof RetrievalModelRankedBoolean){    	
     	return this.getScoreRankedBoolean (r); }
     else if(r instanceof RetrievalModelOkapiBM25){
     	return this.performOkapiFormula( (RetrievalModelOkapiBM25) r);
+    }else if(r instanceof RetrievalModelIndri){
+    	return this.getScoreIndri( (RetrievalModelIndri) r);
     }
     else {
       throw new IllegalArgumentException
         (r.getClass().getName() + " doesn't support the SCORE operator.");
     }
   }
+ 
+   
   
-  /**
+
+
+/**
    *  getScore for the Unranked retrieval model.
    *  @param r The retrieval model that determines how scores are calculated.
    *  @return The document score.
@@ -113,5 +118,45 @@ public class QrySopScore extends QrySop {
     Qry q = this.args.get (0);
     q.initialize (r);
   }
+
+@Override
+public double getDefaultScore(RetrievalModel r, int docID) throws IOException {
+	// TODO Auto-generated method stub
+	
+	RetrievalModelIndri r_indri= (RetrievalModelIndri)r;
+
+	//double termfreq = ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().tf;
+	double sizeOfdoc = Idx.getFieldLength( ((QryIop)this.args.get(0)).getField(), docID);
+	double lengthofC = Idx.getSumOfFieldLengths(((QryIop)this.args.get(0)).getField());
+	double ctf = ((QryIop)this.args.get(0)).getCtf();
+	double OneminusLamda = (1-r_indri.getIdLambda());
+	double prior = (ctf/lengthofC);
+	double lengthAndMu = (sizeOfdoc+r_indri.getIdMu());
+	double score = OneminusLamda * (r_indri.getIdMu()*prior)/lengthAndMu;
+	score = score + (r_indri.getIdLambda()*(ctf/lengthofC));
+  	return score;
+}
+
+
+private double getScoreIndri(RetrievalModelIndri r) throws IOException {
+	// TODO Auto-generated method stub
+	  if (! this.docIteratorHasMatchCache()) {
+	      return 1.0;
+	    } else {
+	    	
+	    	double termfreq = ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().tf;
+	    	double sizeOfdoc = Idx.getFieldLength( ((QryIop)this.args.get(0)).getField(), ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().docid);
+	    	double lengthofC = Idx.getSumOfFieldLengths(((QryIop)this.args.get(0)).getField());
+	    	double ctf = ((QryIop)this.args.get(0)).getCtf();
+	    	double OneminusLamda = (1-r.getIdLambda());
+	    	double prior = (ctf/lengthofC);
+	    	double lengthAndMu = (sizeOfdoc+r.getIdMu());
+	    	
+	    	double score = OneminusLamda * (termfreq + r.getIdMu()*prior)/lengthAndMu;
+	    	score = score + (r.getIdLambda()*prior);
+	    	
+	    	return score;
+	    }
+}
 
 }
