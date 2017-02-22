@@ -33,10 +33,13 @@ public class QrySopSum extends QrySop{
 	    }
 	  }
 	  
-	  
+	  /*
+	   * Function that sums up the BM25 score
+	   * @param r The retrieval model that determines how scores are calculated.
+	   */
 	  
 	  private double getOkapiScore(RetrievalModel r) {
-		// TODO Auto-generated method stub
+		// function that adds the BM25 Score
 		  if (! this.docIteratorHasMatchCache()) {
 		      return 0.0;
 		    } else {

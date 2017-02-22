@@ -84,7 +84,9 @@ public class QrySopScore extends QrySop {
 	      
 	    
 	  }
-  
+  /*
+   * Function that performs the BM25 formula and returns the score
+   */
   private double performOkapiFormula(RetrievalModelOkapiBM25 r) throws IOException{
 	  if (! this.docIteratorHasMatchCache()) {
 	      return 0.0;
@@ -99,8 +101,7 @@ public class QrySopScore extends QrySop {
 	  	  double innervalue = (1-r.getBm25_b()) + (r.getBm25_b() * ( sizeOfdoc / averageLength) ); 
 	  	  double tfweight = termfreq/(termfreq + (r.getBm25_k1() * innervalue));
 	  	  return rsjweight*tfweight;
-	    	//cast into IOP and get the TF. We know that score operator arguments are always QRYIOP.
-	    	//return ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().tf;
+	    	
 	    }
 	   
   }
@@ -113,14 +114,19 @@ public class QrySopScore extends QrySop {
    *  inverted list that may be accessed via the internal iterator.
    *  @param r A retrieval model that guides initialization
    *  @throws IOException Error accessing the Lucene index.
-   *  test githib
+   *  
    */
   public void initialize (RetrievalModel r) throws IOException {
 
     Qry q = this.args.get (0);
     q.initialize (r);
   }
-
+/*
+ * Overriding the Default score function. 
+ * Calculation of the default score with tf =0
+ * (non-Javadoc)
+ * @see QrySop#getDefaultScore(RetrievalModel, int)
+ */
 @Override
 public double getDefaultScore(RetrievalModel r, int docID) throws IOException {
 	// TODO Auto-generated method stub
@@ -128,11 +134,8 @@ public double getDefaultScore(RetrievalModel r, int docID) throws IOException {
 	RetrievalModelIndri r_indri= (RetrievalModelIndri)r;
 
 
-	double weight = 1.0;
-	if(QryParser.testweight.containsKey(this.args.get(0)))
-	weight = QryParser.testweight.get((this.args.get(0)));
 	
-	//double termfreq = ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().tf;
+	// calculate the default score.
 	double sizeOfdoc = Idx.getFieldLength( ((QryIop)this.args.get(0)).getField(), docID);
 	double lengthofC = Idx.getSumOfFieldLengths(((QryIop)this.args.get(0)).getField());
 	double ctf = ((QryIop)this.args.get(0)).getCtf();
@@ -145,16 +148,15 @@ public double getDefaultScore(RetrievalModel r, int docID) throws IOException {
   	return score;
 }
 
-
+/*
+ * Calculates the Indri score here. Applies the formula and returns the score.
+ */
 private double getScoreIndri(RetrievalModelIndri r) throws IOException {
-	// TODO Auto-generated method stub
+	
 	  if (! this.docIteratorHasMatchCache()) {
 	      return 1.0;
 	    } else {
-	    	double weight = 1.0;
-	    	if(QryParser.testweight.containsKey(this.args.get(0)))
-	    	weight = QryParser.testweight.get((this.args.get(0)));
-	    	
+	    	   	
 	    	
 	    	double termfreq = ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().tf;
 	    	double sizeOfdoc = Idx.getFieldLength( ((QryIop)this.args.get(0)).getField(), ((QryIop)this.args.get(0)).docIteratorGetMatchPosting().docid);

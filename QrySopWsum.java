@@ -23,7 +23,10 @@ public class QrySopWsum extends QrySop{
 		    }
 		  }
 
-
+/*
+ * Getscore fucntion that calculates the indri scores for WSUM.
+ * Applies the formula by calculating the weights from the HashMap from Query parser.
+ */
 	private double getscoreIndriModel(RetrievalModel r) throws IOException {
 		// TODO Auto-generated method stub
 		if (! this.docIteratorHasMatchCache()) {
@@ -33,7 +36,7 @@ public class QrySopWsum extends QrySop{
 		    	for(int i=0; i <this.args.size(); i++){
 		    		if(QryParser.testweight.containsKey(this.args.get(i)))
 		    			sumweight+= QryParser.testweight.get((this.args.get(i)));
-		    		else
+		    		else if (QryParser.testweight.containsKey(this.args.get(i).args.get(0)))
 		    			sumweight += QryParser.testweight.get((this.args.get(i).args.get(0)));
 		    	}
 		    	
@@ -43,15 +46,14 @@ public class QrySopWsum extends QrySop{
 		    	double score =0.0;
 		    	double sum=0.0;
 		    	int docIDmin=this.docIteratorGetMatch(); //variable to find the minimum docID
-		    	//System.out.println(docIDmin);
-		    	//double gmean = 1.0/(double)this.args.size();
-		    	for (int i=0; i <this.args.size(); i++){
+		    	
+		    	for (int i=0; i <this.args.size(); i++){ //iterates and finds the sum of the weights
 		    		if (this.args.get(i).docIteratorHasMatchCache()){
 		    		if (((QrySop)this.args.get(i)).docIteratorGetMatch()==docIDmin) {
 		    			
 		    			if(QryParser.testweight.containsKey(this.args.get(i)))
 		    				queryweight= QryParser.testweight.get((this.args.get(i)));
-			    		else
+			    		else if (QryParser.testweight.containsKey(this.args.get(i).args.get(0)))
 			    			queryweight = QryParser.testweight.get((this.args.get(i).args.get(0)));
 		    			
 		    			weightpower = queryweight/sumweight;
@@ -59,11 +61,11 @@ public class QrySopWsum extends QrySop{
 		    		score += sum; 
 		    		
 		    		}
-		    		else{
+		    		else{ //calculates the factor and gets the score
 		    			
 		    			if(QryParser.testweight.containsKey(this.args.get(i)))
 		    				queryweight= QryParser.testweight.get((this.args.get(i)));
-			    		else
+			    		else if (QryParser.testweight.containsKey(this.args.get(i).args.get(0)))
 			    			queryweight = QryParser.testweight.get((this.args.get(i).args.get(0)));
 		    			
 		    			weightpower = queryweight/sumweight;
@@ -72,10 +74,10 @@ public class QrySopWsum extends QrySop{
 		    		score += sum;
 		    		}
 		    		} else
-		    		{	
+		    		{	// go default score
 		    			if(QryParser.testweight.containsKey(this.args.get(i)))
 		    				queryweight = QryParser.testweight.get((this.args.get(i)));
-			    		else
+			    		else if (QryParser.testweight.containsKey(this.args.get(i).args.get(0)))
 			    			queryweight = QryParser.testweight.get((this.args.get(i).args.get(0)));
 		    			
 		    			weightpower = queryweight/sumweight;
@@ -88,27 +90,30 @@ public class QrySopWsum extends QrySop{
 		    
 		    }
 	}
-
+/*
+ * Function that overrrides the getDefault score of the QrySop class.
+ * @see QrySop#getDefaultScore(RetrievalModel, int)
+ */
 	@Override
 	  public double getDefaultScore(RetrievalModel r, int docID) throws IOException {
 	  	// TODO Auto-generated method stub
-	  		double score =0.0;
-	  		double sumweight = 0;
+	  		double score =0.0; 
+	  		double sumweight = 0; //sum of all weights in the args
 	    	for(int i=0; i <this.args.size(); i++){
 	    		if(QryParser.testweight.containsKey(this.args.get(i)))
 	    			sumweight+= QryParser.testweight.get((this.args.get(i)));
-	    		else
+	    		else if (QryParser.testweight.containsKey(this.args.get(i).args.get(0)))
 	    			sumweight += QryParser.testweight.get((this.args.get(i).args.get(0)));
 	    	}
 	    	
 	    	double queryweight = 0;
 	    	double weightpower =0;
 	  		
-	  		//double gmean = 1.0/(double)this.args.size();
+	  		
 	  		for (int i = 0; i < this.args.size(); i++){	 
 	  			if(QryParser.testweight.containsKey(this.args.get(i)))
   				queryweight = QryParser.testweight.get((this.args.get(i)));
-	    		else
+	    		else if (QryParser.testweight.containsKey(this.args.get(i).args.get(0)))
 	    			queryweight = QryParser.testweight.get((this.args.get(i).args.get(0)));
   			
   			weightpower = queryweight/sumweight;

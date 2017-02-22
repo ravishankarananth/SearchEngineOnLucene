@@ -324,11 +324,11 @@ while (queryString.length() > 0) {
       //  this loop must handle "weight arg".  Handle the weight first.
 	PopData<String,String> p;
 	PopData<String,String> weight = null;
-      //  STUDENT HW2 CODE GOES HERE
+      //check if term is a weight
     	if(popTerm(queryString).getPopped().matches("[0-9]+.[0-9]+") ){
-    		
+    		//pop the weight
     		weight = popTerm(queryString);
-    		System.out.println(weight.getPopped());
+    		//get the remaining term and continue as usual
     		queryString = weight.getRemaining().trim();
     		
     		
@@ -360,10 +360,8 @@ while (queryString.length() > 0) {
 
     	  
     	  
-	//  STUDENTS WILL NEED TO ADJUST THIS BLOCK TO HANDLE WEIGHTS IN HW2
-    	  
-    
-    	
+	   
+    	  //if there is a weight add the weight and query to the hashmap
     	  if(weight!=null)
     	  	testweight.put(qargs[i], Double.parseDouble(weight.getPopped()));
     	
@@ -371,11 +369,7 @@ while (queryString.length() > 0) {
 	queryTree.appendArg (qargs[i]);
       }
     }
-/*Set<Qry> keys = queryTree.weight.keySet();  //get all keys
-for(Qry i: keys)
-{
-    System.out.println(i);
-}*/
+
 
 
     return queryTree;

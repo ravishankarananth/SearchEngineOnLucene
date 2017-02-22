@@ -22,7 +22,12 @@ public class QrySopWand extends QrySop{
 		        (r.getClass().getName() + " doesn't support the AND operator.");
 		    }
 		  }
-
+	  /**
+	   *  Function to multiply the indri score and power with the weight.
+	   *  @param r The retrieval model that determines what is a match
+	   *  @return Double
+	   */
+	  
 	private double getscoreIndriModel(RetrievalModel r) throws IOException {
 		
 		  if (! this.docIteratorHasMatchCache()) {
@@ -30,9 +35,10 @@ public class QrySopWand extends QrySop{
 		    } else {
 		    	double sumweight = 0;
 		    	for(int i=0; i <this.args.size(); i++){
+		    		
 		    		if(QryParser.testweight.containsKey(this.args.get(i)))
 		    			sumweight+= QryParser.testweight.get((this.args.get(i)));
-		    		else
+		    		else if(QryParser.testweight.containsKey(this.args.get(i).args.get(0)))
 		    			sumweight += QryParser.testweight.get((this.args.get(i).args.get(0)));
 		    	}
 		    	
@@ -50,7 +56,7 @@ public class QrySopWand extends QrySop{
 		    			
 		    			if(QryParser.testweight.containsKey(this.args.get(i)))
 		    				queryweight= QryParser.testweight.get((this.args.get(i)));
-			    		else
+			    		else if(QryParser.testweight.containsKey(this.args.get(i).args.get(0)))
 			    			queryweight = QryParser.testweight.get((this.args.get(i).args.get(0)));
 		    			
 		    			weightpower = queryweight/sumweight;
@@ -62,7 +68,7 @@ public class QrySopWand extends QrySop{
 		    			
 		    			if(QryParser.testweight.containsKey(this.args.get(i)))
 		    				queryweight= QryParser.testweight.get((this.args.get(i)));
-			    		else
+			    		else if(QryParser.testweight.containsKey(this.args.get(i).args.get(0)))
 			    			queryweight = QryParser.testweight.get((this.args.get(i).args.get(0)));
 		    			
 		    			weightpower = queryweight/sumweight;
@@ -74,7 +80,7 @@ public class QrySopWand extends QrySop{
 		    		{	
 		    			if(QryParser.testweight.containsKey(this.args.get(i)))
 		    				queryweight = QryParser.testweight.get((this.args.get(i)));
-			    		else
+			    		else if(QryParser.testweight.containsKey(this.args.get(i).args.get(0)))
 			    			queryweight = QryParser.testweight.get((this.args.get(i).args.get(0)));
 		    			
 		    			weightpower = queryweight/sumweight;
@@ -87,7 +93,10 @@ public class QrySopWand extends QrySop{
 		    
 		    }
 	}
-
+/*
+ * The default score function.
+ * @see QrySop#getDefaultScore(RetrievalModel, int)
+ */
 	@Override
 	  public double getDefaultScore(RetrievalModel r, int docID) throws IOException {
 	  	// TODO Auto-generated method stub

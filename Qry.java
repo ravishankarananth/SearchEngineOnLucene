@@ -84,6 +84,12 @@ public abstract class Qry {
    */
   protected ArrayList<Qry> args = new ArrayList<Qry>();
 
+  /**
+   *  The hashmap that stores the weights of the query operators. The key is the query operator 
+   *  and values are the weights in double.
+   *  
+   */
+  
   protected HashMap<Qry, Double> weight = new HashMap<>();
   /**
    *  The string to use when the query is displayed.  Some query
@@ -103,6 +109,12 @@ public abstract class Qry {
 
   //  --------------- Methods ---------------------------------------
 
+  /**
+   *  Append the weight and query to the hashmap arguments.  
+   *  @param q The query argument (query operator) to append.
+   *  @param w is the weight of the Query
+   *  @throws IllegalArgumentException q is an invalid argument
+   */
   public void appendWeight(Qry q, double w){
 	  weight.put(q, w);
   }
