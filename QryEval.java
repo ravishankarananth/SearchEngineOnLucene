@@ -219,6 +219,10 @@ public class QryEval {
           FileWriter fw = new FileWriter(parameters.get("trecEvalOutputPath"), true);
           BufferedWriter writer = new BufferedWriter(fw);
           DecimalFormat dFormat = new DecimalFormat("#0.000000000000");
+          if(r.size()==0){
+        	  fw.write(qid + "\tQ0\tdummy\t1\t0\trun-1\n");
+          }
+          
           for (int i = 0; i < r.size(); i++){
           if(i>length-1)
         	  break;
