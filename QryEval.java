@@ -6,15 +6,11 @@ import java.io.*;
 import java.security.Policy.Parameters;
 import java.text.DecimalFormat;
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
-import org.apache.lucene.analysis.Analyzer.TokenStreamComponents;
-import org.apache.lucene.analysis.TokenStream;
-import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.index.*;
-import org.apache.lucene.search.*;
-import org.apache.lucene.store.FSDirectory;
-import org.apache.lucene.util.Version;
+
+
 
 /**
  *  This software illustrates the architecture for the portion of a
@@ -98,8 +94,22 @@ public class QryEval {
     	model = new RetrievalModelOkapiBM25(Double.parseDouble(parameters.get("BM25:k_1")), Double.parseDouble(parameters.get("BM25:b")), Double.parseDouble(parameters.get("BM25:k_3")));
     }
     else if(modelString.equals("indri")){
-    	model = new RetrievalModelIndri(Double.parseDouble(parameters.get("Indri:lambda")), Double.parseDouble(parameters.get("Indri:mu")));
-    }
+			if (parameters.containsKey("fb")) {
+				if (parameters.get("fb").equals("true")) {
+					model = new RetrievalModelIndri(Double.parseDouble(parameters.get("Indri:lambda")),
+							Double.parseDouble(parameters.get("Indri:mu")), Double.parseDouble(parameters.get("fbDocs")), 
+							Double.parseDouble(parameters.get("fbTerms")), Double.parseDouble(parameters.get("fbOrigWeight")), parameters.get("fbExpansionQueryFile"),
+							Double.parseDouble(parameters.get("fbMu")), Boolean.parseBoolean(parameters.get("fb")), parameters.get("fbInitialRankingFile"));
+					
+				} else {
+					model = new RetrievalModelIndri(Double.parseDouble(parameters.get("Indri:lambda")),
+							Double.parseDouble(parameters.get("Indri:mu")));
+				}
+			} else {
+				model = new RetrievalModelIndri(Double.parseDouble(parameters.get("Indri:lambda")),
+						Double.parseDouble(parameters.get("Indri:mu")));
+			}
+    	}
     else {
       throw new IllegalArgumentException
         ("Unknown retrieval model " + parameters.get("retrievalAlgorithm"));
@@ -181,7 +191,7 @@ public class QryEval {
       throws IOException {
 
     BufferedReader input = null;
-
+    DecimalFormat four = new DecimalFormat("0.0000");
     try {
       String qLine = null;
 
@@ -205,8 +215,69 @@ public class QryEval {
         System.out.println("Query " + qLine);
 
         ScoreList r = null;
-
-        r = processQuery(query, model);
+        if(model instanceof RetrievalModelIndri){
+        	if(((RetrievalModelIndri) model).getFb()){
+        		
+        		//feedback is true
+        		r = processQuery(query, model);
+        		HashSet<String> qterms = new HashSet<String>(); // Set with terms
+        		TermVector tv = null;
+        		for(int i =0; i< ((RetrievalModelIndri) model).getFbDocs(); i++){
+        			int dID = r.getDocid(i); //top fb docIDs
+        			tv = new TermVector(dID, "body");
+        			
+        			int k=1;
+        			while(tv.stemString(k)!=null){
+        				if(!(tv.stemString(k).contains(",") || tv.stemString(k).contains(".")))
+        				qterms.add(tv.stemString(k));
+        				k++;
+        				
+        			}
+        		}
+        		HashMap<String, Double> termScore = new HashMap<>();
+        		for (String qterm : qterms){
+        			
+        			double score =0.0;
+        			for(int i =0; i< ((RetrievalModelIndri) model).getFbDocs(); i++){
+        				score += calcScore(qterm, r.getDocid(i), r.getDocidScore(i), i );
+        				}
+        			termScore.put(qterm, score);
+        			
+        		}
+        		
+        		Map<String,Double> topTen = doaSort(termScore, (int)((RetrievalModelIndri) model).getFbTerms());
+        		ArrayList<Double> tempscore = new ArrayList<>();
+        		for(String keyset : topTen.keySet()){
+        			tempscore.add(topTen.get(keyset));
+        		}
+        		Collections.sort(tempscore);
+        		
+        		String expandedQuery = new String("#wand( ");
+        		for (Double score : tempscore){
+        		for(String keyset : topTen.keySet()){
+        			if(topTen.get(keyset)==score){
+        			expandedQuery = expandedQuery + " " + four.format(topTen.get(keyset)) + " " + keyset;
+        			
+        			}
+        		}}
+        	expandedQuery = expandedQuery + ")";
+        	
+        	FileWriter fw = new FileWriter(parameters.get("fbExpansionQueryFile"), true);
+            BufferedWriter writer = new BufferedWriter(fw);
+            writer.write(qid+":\t"+expandedQuery);
+            writer.newLine();
+            writer.close();
+            double weight = ((RetrievalModelIndri) model).fbOrinWeight;
+            String newQuery = qid+":\t"+"#wand ( " + weight + " " + qLine + " " + (1-weight) + " " + expandedQuery + ")\n";
+            r = processQuery(newQuery, model);
+        	//query = make new query	
+        	}
+        	else {
+        		r = processQuery(query, model);
+        	}
+        }else {
+        	r = processQuery(query, model);
+        }
 
         if (r != null) {
           //printResults(qid, r);
@@ -226,7 +297,8 @@ public class QryEval {
           for (int i = 0; i < r.size(); i++){
           if(i>length-1)
         	  break;
-         //System.out.println(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+r.getDocidScore(i)+"\t"+"fubar");
+         
+          //System.out.println(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+r.getDocidScore(i)+"\t"+"fubar");
           writer.write(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+dFormat.format(r.getDocidScore(i))+"\t"+"fubar");
 		  //if(i<r.size()-1)
 		  writer.newLine();
@@ -241,7 +313,34 @@ public class QryEval {
     }
   }
 
-  /**
+  private static Map<String, Double> doaSort(HashMap<String, Double> termScore, int limit) {
+	 
+	  Map<String,Double> topTen =
+			  termScore.entrySet().stream()
+			       .sorted(Map.Entry.comparingByValue(Comparator.reverseOrder()))
+			       .limit(limit)
+			       .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+	  
+
+	    return topTen;	
+}
+
+private static double calcScore(String qterm, int docid, Double scoreDoc, int i) throws IOException {
+	TermVector tv = new TermVector(docid, "body");
+	int tf = 0;
+	  int index = tv.indexOfStem(qterm);
+	  if(index!=-1){
+		  tf = tv.stemFreq(index);
+	  }
+	Double ptd = (double) tf/ (double)Idx.getFieldLength("body", docid);
+	  
+	  double idfLikeScore = Math.log( (double)Idx.getSumOfFieldLengths("body")/ (double)Idx.getTotalTermFreq("body", qterm)); 
+	  
+	 
+	  return ptd*scoreDoc*idfLikeScore;
+  }
+
+/**
    * Print the query results.
    * 
    * THIS IS NOT THE CORRECT OUTPUT FORMAT. YOU MUST CHANGE THIS METHOD SO
@@ -308,4 +407,6 @@ public class QryEval {
     return parameters;
   }
 
+
+  
 }
