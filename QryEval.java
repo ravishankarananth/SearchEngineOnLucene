@@ -215,15 +215,48 @@ public class QryEval {
         System.out.println("Query " + qLine);
 
         ScoreList r = null;
+        
         if(model instanceof RetrievalModelIndri){
         	if(((RetrievalModelIndri) model).getFb()){
-        		
+        		HashSet<String> qterms = new HashSet<String>(); // Set with terms
+        		if (((RetrievalModelIndri) model).getFbInitialRankingFile()==null ){
+        			
         		//feedback is true
         		r = processQuery(query, model);
-        		HashSet<String> qterms = new HashSet<String>(); // Set with terms
+        		
+        		} else {
+        		
+
+        			String initfilePath = ((RetrievalModelIndri) model).getFbInitialRankingFile();
+        			r = new ScoreList();
+        			try (BufferedReader br = new BufferedReader(new FileReader(initfilePath))) {
+
+        				String line;
+        				while ((line = br.readLine()) != null) {
+        					String[] parts = line.split("\\s+");
+        					
+        					if(parts[0].equals(qid)){
+        						
+        						
+        						
+        						int dID = Idx.getInternalDocid(parts[2]);
+        						
+        						double scorePart = Double.parseDouble(parts[4]);
+        						r.add(dID, scorePart);
+        					}
+        				}
+
+        			} catch (Exception e) {
+        				e.printStackTrace();
+        			}
+        			
+
+        			r.sort();
+        		}
         		TermVector tv = null;
         		for(int i =0; i< ((RetrievalModelIndri) model).getFbDocs(); i++){
         			int dID = r.getDocid(i); //top fb docIDs
+        			
         			tv = new TermVector(dID, "body");
         			
         			int k=1;
@@ -234,12 +267,14 @@ public class QryEval {
         				
         			}
         		}
+        		
+        		
         		HashMap<String, Double> termScore = new HashMap<>();
         		for (String qterm : qterms){
         			
         			double score =0.0;
         			for(int i =0; i< ((RetrievalModelIndri) model).getFbDocs(); i++){
-        				score += calcScore(qterm, r.getDocid(i), r.getDocidScore(i), i );
+        				score += calcScore(qterm, r.getDocid(i), r.getDocidScore(i), i , ((RetrievalModelIndri) model).getFbMu());
         				}
         			termScore.put(qterm, score);
         			
@@ -262,14 +297,20 @@ public class QryEval {
         		}}
         	expandedQuery = expandedQuery + ")";
         	
+        	System.out.println("----> this is the expanded query \n"+expandedQuery);        	
         	FileWriter fw = new FileWriter(parameters.get("fbExpansionQueryFile"), true);
             BufferedWriter writer = new BufferedWriter(fw);
             writer.write(qid+":\t"+expandedQuery);
             writer.newLine();
             writer.close();
             double weight = ((RetrievalModelIndri) model).fbOrinWeight;
-            String newQuery = qid+":\t"+"#wand ( " + weight + " " + qLine + " " + (1-weight) + " " + expandedQuery + ")\n";
+            
+            String newQuery = "#wand ( " + weight + " #and(" + query + ") " + (1-weight) + " " + expandedQuery + ")\n";
+            
+            
             r = processQuery(newQuery, model);
+            System.out.println("----> this is the new query \n"+newQuery);
+            
         	//query = make new query	
         	}
         	else {
@@ -298,7 +339,7 @@ public class QryEval {
           if(i>length-1)
         	  break;
          
-          //System.out.println(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+r.getDocidScore(i)+"\t"+"fubar");
+          System.out.println(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+r.getDocidScore(i)+"\t"+"fubar");
           writer.write(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+dFormat.format(r.getDocidScore(i))+"\t"+"fubar");
 		  //if(i<r.size()-1)
 		  writer.newLine();
@@ -325,16 +366,17 @@ public class QryEval {
 	    return topTen;	
 }
 
-private static double calcScore(String qterm, int docid, Double scoreDoc, int i) throws IOException {
+private static double calcScore(String qterm, int docid, Double scoreDoc, int i, double muVal) throws IOException {
 	TermVector tv = new TermVector(docid, "body");
 	int tf = 0;
 	  int index = tv.indexOfStem(qterm);
 	  if(index!=-1){
 		  tf = tv.stemFreq(index);
 	  }
-	Double ptd = (double) tf/ (double)Idx.getFieldLength("body", docid);
+	  Double ptc =  (double)Idx.getTotalTermFreq("body", qterm)/(double)Idx.getSumOfFieldLengths("body");
+	Double ptd = (double) ((double)tf + (muVal*ptc))/ (double)((double)Idx.getFieldLength("body", docid)+muVal);
 	  
-	  double idfLikeScore = Math.log( (double)Idx.getSumOfFieldLengths("body")/ (double)Idx.getTotalTermFreq("body", qterm)); 
+	  double idfLikeScore = Math.log(1.0/ptc); 
 	  
 	 
 	  return ptd*scoreDoc*idfLikeScore;

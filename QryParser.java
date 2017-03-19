@@ -264,7 +264,14 @@ public static HashMap<Qry, Double> testweight = new HashMap<>();
 
     if ((q.args.size() == 1) &&
         (! (q instanceof QrySopScore))) {
-      q = q.args.get (0);
+      
+      if(testweight.containsKey(q)){
+    	  
+    	  testweight.put(q.args.get(0), testweight.get(q));
+    	  testweight.remove(q);
+    	  
+      }
+      q = q.args.get(0);
     }
 
     return q;
