@@ -19,8 +19,7 @@ String fbInitialRankingFile;
 		return idMu;
 	}
 	public RetrievalModelIndri(double idLambda, double idMu) {
-		super();
-		
+		super();		
 		this.idLambda = idLambda;
 		this.idMu = idMu;
 		this.fb = false;

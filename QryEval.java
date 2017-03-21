@@ -9,6 +9,8 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.apache.lucene.queryparser.classic.QueryParser;
+
 
 
 
@@ -232,26 +234,30 @@ public class QryEval {
         			try (BufferedReader br = new BufferedReader(new FileReader(initfilePath))) {
 
         				String line;
-        				while ((line = br.readLine()) != null) {
+        				int count = (int) ((RetrievalModelIndri) model).getFbDocs();
+        				while (((line = br.readLine()) != null) && count!=0) {
+        					
         					String[] parts = line.split("\\s+");
         					
-        					if(parts[0].equals(qid)){
-        						
-        						
+        					if(parts[0].equals(qid)){       						
+        						count--;	
         						
         						int dID = Idx.getInternalDocid(parts[2]);
         						
         						double scorePart = Double.parseDouble(parts[4]);
         						r.add(dID, scorePart);
+        					} 
         					}
+        				br.close();
         				}
 
-        			} catch (Exception e) {
+        			 catch (Exception e) {
         				e.printStackTrace();
-        			}
+        			} 
         			
 
         			r.sort();
+        			r.truncate((int) ((RetrievalModelIndri) model).getFbDocs());
         		}
         		TermVector tv = null;
         		for(int i =0; i< ((RetrievalModelIndri) model).getFbDocs(); i++){
@@ -267,7 +273,7 @@ public class QryEval {
         				
         			}
         		}
-        		
+        		tv = null;
         		
         		HashMap<String, Double> termScore = new HashMap<>();
         		for (String qterm : qterms){
@@ -281,6 +287,7 @@ public class QryEval {
         		}
         		
         		Map<String,Double> topTen = doaSort(termScore, (int)((RetrievalModelIndri) model).getFbTerms());
+        		termScore = null;
         		ArrayList<Double> tempscore = new ArrayList<>();
         		for(String keyset : topTen.keySet()){
         			tempscore.add(topTen.get(keyset));
@@ -339,13 +346,15 @@ public class QryEval {
           if(i>length-1)
         	  break;
          
-          System.out.println(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+r.getDocidScore(i)+"\t"+"fubar");
+          //System.out.println(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+r.getDocidScore(i)+"\t"+"fubar");
           writer.write(qid+'\t'+"Q0"+'\t'+Idx.getExternalDocid(r.getDocid(i))+'\t'+(i+1)+'\t'+dFormat.format(r.getDocidScore(i))+"\t"+"fubar");
 		  //if(i<r.size()-1)
 		  writer.newLine();
           }
           writer.close();
+          
         }
+        QryParser.testweight.clear();
       }
     } catch (IOException ex) {
       ex.printStackTrace();
