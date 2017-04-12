@@ -113,7 +113,11 @@ public class TermVector {
     }
   }
 
-  /**
+  public Terms getLuceneTerms() {
+	return luceneTerms;
+}
+
+/**
    *  Get the index of stem in the stems vector, or -1 if the stems
    *  vector does not contain the stem.  
    *  @param stem The stem to search for.
